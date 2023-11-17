@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 
 def construct_md_main_title(arxiv_meta):
@@ -31,3 +32,7 @@ def relpath_from_b_to_a(a_path, b_path):
     a_rel_path = os.path.relpath(a_path, common_parent)
     b_rel_path = os.path.relpath(b_path, common_parent)
     return  '../' * a_rel_path.count('/') + b_rel_path    
+
+
+def join_relpath(a_path, b_relpath):
+    return str(Path(a_path).parents[b_relpath.count('../')] / b_relpath.replace('../', ''))

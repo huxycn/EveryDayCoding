@@ -14,6 +14,7 @@ from .utils import (
     construct_md_link, 
     get_pdf_name_from_md_main_title,
     relpath_from_b_to_a,
+    join_relpath
 )
 
 
@@ -82,21 +83,21 @@ def _markdown(md_path, download_pdf=False, pdf_download_dir='./pdfs'):
                 pdf_path = Path(pdf_download_dir) / pdf_name
 
                 if pdf_path.exists():
-                    logger.info(f'{item} => no pdf link, but pdf file exists => add pdf link')
+                    logger.info(f'{item[:10]} => no pdf link, but pdf file exists => add pdf link')
                 else:
-                    logger.info(f'{item} => no pdf link, and pdf file not exists => download and add pdf link')
+                    logger.info(f'{item[:10]} => no pdf link, and pdf file not exists => download and add pdf link')
                     arxiv_meta = arxiv_api.fetch(arxiv_url)
                     _download_arxiv_pdf(arxiv_meta, pdf_download_dir)
                 
                 pdf_relpath_to_md = relpath_from_b_to_a(md_path.absolute().as_posix(), pdf_path.absolute().as_posix())
-                return f"{item} {construct_md_link('pdf', pdf_relpath_to_md)}"
+                return f"{item[:10]} {construct_md_link('pdf', pdf_relpath_to_md)}"
             else:
-                pdf_path = md_path.joinpath(pdf_relpath_to_md)
+                pdf_path = join_relpath(md_path, pdf_relpath_to_md)
                 if Path(pdf_path).exists():
-                    logger.info(f'{item} => has pdf link, and pdf file exists => do nothing')
+                    logger.info(f'{item[:10]} => has pdf link, and pdf file exists => do nothing')
                     return item
                 else:
-                    logger.info(f'{item} => has pdf link, but pdf file not exists => download and modify pdf link')
+                    logger.info(f'{item[:10]} => has pdf link, but pdf file not exists => download and modify pdf link')
                     arxiv_meta = arxiv_api.fetch(arxiv_url)
                     new_pdf_path = _download_arxiv_pdf(arxiv_meta, pdf_download_dir)
                     new_pdf_relpath_to_md = relpath_from_b_to_a(md_path.absolute().as_posix(), new_pdf_path.absolute().as_posix())
@@ -126,9 +127,8 @@ def markdown(md_path_or_dir, download_pdf=False, pdf_download_dir='./pdfs'):
     else:
         md_paths = []
     
-    logger.info(f'Detect {len(md_paths)} markdown files:')
+    logger.info(f'Detect {len(md_paths)} markdown files')
     for md_path in md_paths:
-        logger.info(f'    {md_path}')
         _markdown(md_path, download_pdf, pdf_download_dir)
 
 

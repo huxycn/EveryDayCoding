@@ -10,9 +10,7 @@ class MdFile:
 
     def replace(self, recognizer, replace_func):
         items = recognizer.findall(self.content)
-        logger.info(f"{recognizer.name} found {len(items)} items:")
-        for item in items:
-            logger.info(f"    {item}")
+        logger.info(f"{recognizer.name} found {len(items)} items")
         replace_dict = {}
         for item in items:
             replace_dict[item] = replace_func(item)
