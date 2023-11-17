@@ -4,7 +4,17 @@ import fire
 from pathlib import Path
 from loguru import logger
 
-from .utils import arxiv_api, MdFile, PatternRecognizer, PdfDownloader, construct_pdf_name, construct_md_line, construct_md_link, get_pdf_name_from_md_main_title
+from .utils import (
+    arxiv_api, 
+    MdFile, 
+    PatternRecognizer, 
+    PdfDownloader, 
+    construct_pdf_name, 
+    construct_md_line, 
+    construct_md_link, 
+    get_pdf_name_from_md_main_title,
+    relpath_from_b_to_a,
+)
 
 
 def _download_arxiv_pdf(arxiv_meta, pdf_download_dir='.'):
@@ -65,20 +75,23 @@ def _markdown(md_path, download_pdf=False, pdf_download_dir='./pdfs'):
         try:
             main_title = main_title_recognizer.findall(item)[0]
             arxiv_url = abs_url_recognizer.findall(item)[0]
-            pdf_path = (pdf_path_recognizer.findall(item) + [None])[0]
+            pdf_relpath_to_md = (pdf_path_recognizer.findall(item) + [None])[0]
 
-            if pdf_path is None:
+            if pdf_relpath_to_md is None:
                 pdf_name = get_pdf_name_from_md_main_title(main_title)
                 pdf_path = Path(pdf_download_dir) / pdf_name
+
                 if pdf_path.exists():
                     logger.info(f'{item} => no pdf link, but pdf file exists => add pdf link')
-                    return f"{item} {construct_md_link('pdf', pdf_path)}"
                 else:
                     logger.info(f'{item} => no pdf link, and pdf file not exists => download and add pdf link')
                     arxiv_meta = arxiv_api.fetch(arxiv_url)
-                    pdf_path = _download_arxiv_pdf(arxiv_meta, pdf_download_dir)
-                    return f"{item} {construct_md_link('pdf', pdf_path)}"
+                    _download_arxiv_pdf(arxiv_meta, pdf_download_dir)
+                
+                pdf_relpath_to_md = relpath_from_b_to_a(md_path.absolute().as_posix(), pdf_path.absolute().as_posix())
+                return f"{item} {construct_md_link('pdf', pdf_relpath_to_md)}"
             else:
+                pdf_path = md_path.joinpath(pdf_relpath_to_md)
                 if Path(pdf_path).exists():
                     logger.info(f'{item} => has pdf link, and pdf file exists => do nothing')
                     return item
@@ -86,7 +99,8 @@ def _markdown(md_path, download_pdf=False, pdf_download_dir='./pdfs'):
                     logger.info(f'{item} => has pdf link, but pdf file not exists => download and modify pdf link')
                     arxiv_meta = arxiv_api.fetch(arxiv_url)
                     new_pdf_path = _download_arxiv_pdf(arxiv_meta, pdf_download_dir)
-                    return item.replace(pdf_path, str(new_pdf_path))
+                    new_pdf_relpath_to_md = relpath_from_b_to_a(md_path.absolute().as_posix(), new_pdf_path.absolute().as_posix())
+                    return item.replace(pdf_relpath_to_md, str(new_pdf_relpath_to_md))
 
         except Exception as e:
             logger.warning(f'{item} failed: {e}')

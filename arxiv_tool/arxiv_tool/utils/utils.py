@@ -1,3 +1,5 @@
+import os
+
 
 def construct_md_main_title(arxiv_meta):
     _id = arxiv_meta._id
@@ -22,3 +24,10 @@ def construct_pdf_name(arxiv_meta):
 
 def get_pdf_name_from_md_main_title(md_main_title):
     return md_main_title.replace('. ', '_').replace('**', '') + '.pdf'
+
+
+def relpath_from_b_to_a(a_path, b_path):
+    common_parent = os.path.commonpath([a_path, b_path])
+    a_rel_path = os.path.relpath(a_path, common_parent)
+    b_rel_path = os.path.relpath(b_path, common_parent)
+    return  '../' * a_rel_path.count('/') + b_rel_path    
