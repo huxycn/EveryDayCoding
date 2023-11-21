@@ -90,7 +90,7 @@ def _markdown(md_path, download_pdf=False, pdf_download_dir='./pdfs'):
                     _download_arxiv_pdf(arxiv_meta, pdf_download_dir)
                 
                 pdf_relpath_to_md = relpath_from_b_to_a(md_path.absolute().as_posix(), pdf_path.absolute().as_posix())
-                return f"{item[:10]} {construct_md_link('pdf', pdf_relpath_to_md)}"
+                return f"{item} {construct_md_link('pdf', pdf_relpath_to_md)}"
             else:
                 pdf_path = join_relpath(md_path, pdf_relpath_to_md)
                 if Path(pdf_path).exists():
