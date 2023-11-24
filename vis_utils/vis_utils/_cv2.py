@@ -48,7 +48,7 @@ def get_text_size_and_offset(text, height):
     fontScale = cv2.getFontScaleFromHeight(FONT_FACE, height, THICKNESS)
     text_size, baseline = cv2.getTextSize(text, FONT_FACE, fontScale, THICKNESS)
 
-    assert text_size[1] == height
+    # assert text_size[1] == height
 
     width = text_size[0]
     height = text_size[1] if text.isnumeric() else text_size[1] + baseline
@@ -56,12 +56,18 @@ def get_text_size_and_offset(text, height):
     return width, height, offset, fontScale
 
 
-def put_text(img, pt, height, text, color):
+def put_text(img, pt, height, text, color, pt_type='left_top'):
     h, w, _ = img.shape
-    x0, y0 = pt
 
     tw, th, to, fontScale = get_text_size_and_offset(text, height)
     # assert height == th, f'{height}, {th}'
+
+    if pt_type == 'left_top':
+        x0, y0 = pt
+    elif pt_type == 'center':
+        x0, y0 = pt[0]-tw//2, pt[1]-th//2
+    else:
+        raise ValueError(f'Not support pt_type: {pt_type}')
 
     cv2.putText(img, text, (x0, y0 + to-1), FONT_FACE, fontScale, color, THICKNESS, LINE_TYPE)
     return x0 + tw, y0 + th
